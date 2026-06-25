@@ -21,7 +21,7 @@ public class DiaryReminderScheduler {
     private final EmailService emailService;
 
     // 매일 22시 실행
-    @Scheduled(cron = "0 0 22 * * *", zone = "Asia/Seoul")
+//    @Scheduled(cron = "0 0 22 * * *", zone = "Asia/Seoul")
     public void sendDiaryReminder() {
         log.info("일기 알림 스케줄러 시작");
 
