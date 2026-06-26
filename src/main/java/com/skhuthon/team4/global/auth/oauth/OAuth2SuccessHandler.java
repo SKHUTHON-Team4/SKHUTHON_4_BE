@@ -26,20 +26,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
         Long memberId = oAuth2User.getMember().getId();
 
-        // JWT 토큰 발급
         String token = jwtTokenProvider.generateToken(memberId);
 
         log.info("OAuth2 로그인 성공 - memberId: {}", memberId);
 
-        // 프론트엔드로 토큰과 함께 리다이렉트
-//        String redirectUrl = "http://localhost:3000/oauth/callback?token=" + token;
-//        String redirectUrl = "https://gksruf.store/oauth/callback?token=" + token;
-//        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
-
-        String redirectUrl = "http://localhost:3000/oauth/callback?token=" + token;
-
+        String redirectUrl = "https://cheongchun-v1.vercel.app/oauth/callback?token=" + token;
         log.info("Redirect URL = {}", redirectUrl);
-
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }
