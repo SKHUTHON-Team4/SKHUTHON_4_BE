@@ -69,14 +69,21 @@ public class DiaryService {
         return DiaryResponseDto.from(diary, commentRepository.countByDiary(diary));
     }
 
+    // PATCH /api/diaries/{diaryId}/ai-comment - AI 멘트 저장 (AI팀 호출용)
+    @Transactional
+    public DiaryResponseDto updateAiComment(Long diaryId, String aiComment) {
+        Diary diary = diaryRepository.findById(diaryId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
+
+        diary.updateAiComment(aiComment);
+        return DiaryResponseDto.from(diary, commentRepository.countByDiary(diary));
+    }
+
     // GET /api/diaries/today-mood - 홈 화면 감정 통계
-    // 전날 오후 9시 ~ 오늘 오후 9시 기준
     public TodayMoodResponseDto getTodayMood() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime end = now.toLocalDate().atTime(21, 0, 0);
 
-        // 현재가 오후 9시 이후면 오늘 21시 ~ 내일 21시
-        // 현재가 오후 9시 이전이면 어제 21시 ~ 오늘 21시
         if (now.isAfter(end)) {
             end = end.plusDays(1);
         }
@@ -88,7 +95,6 @@ public class DiaryService {
             return TodayMoodResponseDto.empty();
         }
 
-        // 감정별 카운트
         Map<Integer, Long> emotionCounts = diaries.stream()
                 .collect(Collectors.groupingBy(Diary::getEmotion, Collectors.counting()));
 
@@ -99,13 +105,11 @@ public class DiaryService {
         int count25  = emotionCounts.getOrDefault(25, 0L).intValue();
         int count0   = emotionCounts.getOrDefault(0, 0L).intValue();
 
-        // 평균 감정 계산
         double avg = diaries.stream()
                 .mapToInt(Diary::getEmotion)
                 .average()
                 .orElse(50);
 
-        // 평균에 따라 대표 감정 결정
         int representativeEmotion;
         if (avg >= 87.5) representativeEmotion = 100;
         else if (avg >= 62.5) representativeEmotion = 75;

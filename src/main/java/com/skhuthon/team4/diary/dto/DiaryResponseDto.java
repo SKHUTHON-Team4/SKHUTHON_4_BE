@@ -17,6 +17,7 @@ public record DiaryResponseDto(
         int commentCount,
         boolean isPublic,
         Integer emotion,
+        String aiComment,
         LocalDateTime createdAt
 ) {
     public static DiaryResponseDto from(Diary diary, int commentCount) {
@@ -32,6 +33,7 @@ public record DiaryResponseDto(
                 commentCount,
                 diary.isPublic(),
                 diary.getEmotion(),
+                diary.getAiComment(),
                 diary.getCreatedAt()
         );
     }

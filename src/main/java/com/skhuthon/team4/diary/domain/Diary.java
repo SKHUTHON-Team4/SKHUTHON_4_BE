@@ -45,6 +45,9 @@ public class Diary {
     @Column
     private Integer emotion;  // 100, 75, 50, 25, 0
 
+    @Column(columnDefinition = "TEXT")
+    private String aiComment;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -73,5 +76,9 @@ public class Diary {
 
     public void updateEmotion(Integer emotion) {
         this.emotion = emotion;
+    }
+
+    public void updateAiComment(String aiComment) {
+        this.aiComment = aiComment;
     }
 }

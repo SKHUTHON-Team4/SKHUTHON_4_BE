@@ -110,4 +110,14 @@ public class DiaryController {
         Integer emotion = body.get("emotion");
         return ApiResponseTemplate.success(diaryService.updateEmotion(member, diaryId, emotion));
     }
+
+    // AI 멘트 저장 (AI팀 호출용 - 인증 불필요)
+    @PatchMapping("/{diaryId}/ai-comment")
+    public ApiResponseTemplate<DiaryResponseDto> updateAiComment(
+            @PathVariable Long diaryId,
+            @RequestBody Map<String, String> body
+    ) {
+        String aiComment = body.get("aiComment");
+        return ApiResponseTemplate.success(diaryService.updateAiComment(diaryId, aiComment));
+    }
 }
