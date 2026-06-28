@@ -13,4 +13,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     // 특정 일기의 댓글 수
     int countByDiary(Diary diary);
+
+    // 일기 삭제 시 댓글 일괄 삭제
+    void deleteByDiary(Diary diary);
 }

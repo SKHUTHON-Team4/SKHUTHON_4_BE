@@ -6,10 +6,12 @@ import com.skhuthon.team4.diary.domain.repository.DiaryRepository;
 import com.skhuthon.team4.diary.dto.DiaryRequestDto;
 import com.skhuthon.team4.diary.dto.DiaryResponseDto;
 import com.skhuthon.team4.diary.dto.TodayMoodResponseDto;
+import com.skhuthon.team4.empathy.domain.repository.EmpathyRepository;
 import com.skhuthon.team4.global.exception.BusinessException;
 import com.skhuthon.team4.global.exception.ErrorCode;
 import com.skhuthon.team4.global.filter.BadWordFilter;
 import com.skhuthon.team4.member.domain.Member;
+import com.skhuthon.team4.notification.domain.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,8 @@ public class DiaryService {
 
     private final DiaryRepository diaryRepository;
     private final CommentRepository commentRepository;
+    private final EmpathyRepository empathyRepository;
+    private final NotificationRepository notificationRepository;
     private final BadWordFilter badWordFilter;
 
     // 연령층 분류
@@ -147,10 +151,8 @@ public class DiaryService {
         }
         LocalDateTime start = end.minusDays(1);
 
-        // 연령층 분류
         String ageGroup = getAgeGroup(member.getAge());
 
-        // 해당 연령층 나이 범위 계산
         List<Diary> diaries;
         if ("전체".equals(ageGroup)) {
             diaries = diaryRepository.findByCreatedAtBetweenAndEmotionIsNotNull(start, end);
@@ -277,6 +279,15 @@ public class DiaryService {
         if (!diary.getMember().getId().equals(member.getId())) {
             throw new BusinessException(ErrorCode.DIARY_ACCESS_DENIED);
         }
+
+        // 댓글 먼저 삭제
+        commentRepository.deleteByDiary(diary);
+
+        // 공감 먼저 삭제
+        empathyRepository.deleteByDiary(diary);
+
+        // 알림 먼저 삭제
+        notificationRepository.deleteByDiaryId(diaryId);
 
         diaryRepository.delete(diary);
     }
