@@ -24,8 +24,8 @@ public class SwaggerConfig {
 
         return new OpenAPI()
                 .info(new Info()
-                        .title("청춘 한 줄 일기 API")
-                        .description("청춘 한 줄 일기 백엔드 API 문서")
+                        .title("청춘잇다 API")
+                        .description("청춘잇다 백엔드 API 문서")
                         .version("1.0.0"))
                 .addSecurityItem(securityRequirement)
                 .components(components);
