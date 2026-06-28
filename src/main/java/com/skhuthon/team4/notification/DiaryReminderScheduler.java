@@ -29,7 +29,8 @@ public class DiaryReminderScheduler {
 
         LocalDate today = LocalDate.now();
 
-        List<Member> members = memberRepository.findAllByIsNotificationTrue();
+        // 밤 10시 알림 ON인 유저만 조회
+        List<Member> members = memberRepository.findAllByIsNotificationNightTrue();
 
         for (Member member : members) {
             boolean wroteToday = diaryRepository.existsByMemberAndDiaryDate(member, today);
@@ -48,7 +49,8 @@ public class DiaryReminderScheduler {
 
         LocalDate yesterday = LocalDate.now().minusDays(1);
 
-        List<Member> members = memberRepository.findAllByIsNotificationTrue();
+        // 아침 알림 ON인 유저만 조회
+        List<Member> members = memberRepository.findAllByIsNotificationMorningTrue();
 
         for (Member member : members) {
             if (member.getEmail() == null) continue;

@@ -15,7 +15,7 @@ public class Member {
 
     @Id
     @Column(name = "id")
-    private Long id; // 카카오 고유 ID (auto increment 아님)
+    private Long id;
 
     @Column(name = "nickname", nullable = false, length = 10)
     private String nickname;
@@ -29,6 +29,14 @@ public class Member {
     @Column(name = "is_notification", nullable = false)
     @Builder.Default
     private boolean isNotification = true;
+
+    @Column(name = "is_notification_night", nullable = false)
+    @Builder.Default
+    private boolean isNotificationNight = true;
+
+    @Column(name = "is_notification_morning", nullable = false)
+    @Builder.Default
+    private boolean isNotificationMorning = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -56,5 +64,13 @@ public class Member {
 
     public void updateNotification(boolean isNotification) {
         this.isNotification = isNotification;
+    }
+
+    public void updateNotificationNight(boolean isNotificationNight) {
+        this.isNotificationNight = isNotificationNight;
+    }
+
+    public void updateNotificationMorning(boolean isNotificationMorning) {
+        this.isNotificationMorning = isNotificationMorning;
     }
 }

@@ -34,7 +34,7 @@ public class MemberService {
         return MemberResponseDto.from(findMember);
     }
 
-    // PATCH /api/members/me/notification - 알림 설정 토글
+    // PATCH /api/members/me/notification - 전체 알림 설정 토글
     @Transactional
     public MemberResponseDto toggleNotification(Member member) {
         Member findMember = memberRepository.findById(member.getId())
@@ -45,18 +45,35 @@ public class MemberService {
         return MemberResponseDto.from(findMember);
     }
 
+    // PATCH /api/members/me/notification/night - 밤 10시 알림 ON/OFF
+    @Transactional
+    public MemberResponseDto toggleNotificationNight(Member member) {
+        Member findMember = memberRepository.findById(member.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        findMember.updateNotificationNight(!findMember.isNotificationNight());
+
+        return MemberResponseDto.from(findMember);
+    }
+
+    // PATCH /api/members/me/notification/morning - 아침 8시 30분 알림 ON/OFF
+    @Transactional
+    public MemberResponseDto toggleNotificationMorning(Member member) {
+        Member findMember = memberRepository.findById(member.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        findMember.updateNotificationMorning(!findMember.isNotificationMorning());
+
+        return MemberResponseDto.from(findMember);
+    }
+
     // GET /api/members/me/profile - 프로필 통계 조회
     public MemberProfileDto getProfile(Member member) {
         Member findMember = memberRepository.findById(member.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        // 내가 쓴 일기 수
         int diaryCount = diaryRepository.countByMember(findMember);
-
-        // 내 일기들이 받은 총 공감 수
         int receivedEmpathy = diaryRepository.sumEmpathyCountByMember(findMember);
-
-        // 내가 준 공감 수
         int givenEmpathy = empathyRepository.countByMember(findMember);
 
         return new MemberProfileDto(

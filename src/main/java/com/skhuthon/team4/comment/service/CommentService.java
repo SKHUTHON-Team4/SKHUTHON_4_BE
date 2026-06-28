@@ -10,6 +10,7 @@ import com.skhuthon.team4.global.exception.BusinessException;
 import com.skhuthon.team4.global.exception.ErrorCode;
 import com.skhuthon.team4.global.filter.BadWordFilter;
 import com.skhuthon.team4.member.domain.Member;
+import com.skhuthon.team4.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final DiaryRepository diaryRepository;
     private final BadWordFilter badWordFilter;
+    private final NotificationService notificationService;
 
     // POST /api/diaries/{diaryId}/comments - 댓글 작성
     @Transactional
@@ -31,7 +33,6 @@ public class CommentService {
         Diary diary = diaryRepository.findById(diaryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
 
-        // 금칙어 체크
         if (badWordFilter.containsBadWord(request.content())) {
             throw new BusinessException(ErrorCode.BAD_WORD_DETECTED);
         }
@@ -42,7 +43,19 @@ public class CommentService {
                 .content(request.content())
                 .build();
 
-        return CommentResponseDto.from(commentRepository.save(comment));
+        CommentResponseDto response = CommentResponseDto.from(commentRepository.save(comment));
+
+        // 본인 일기가 아닐 때만 알림 저장
+        if (!diary.getMember().getId().equals(member.getId())) {
+            notificationService.saveNotification(
+                    diary.getMember(),
+                    "COMMENT",
+                    member.getNickname() + "님이 회원님의 일기에 댓글을 남겼어요 💬",
+                    diaryId
+            );
+        }
+
+        return response;
     }
 
     // GET /api/diaries/{diaryId}/comments - 댓글 목록 조회
