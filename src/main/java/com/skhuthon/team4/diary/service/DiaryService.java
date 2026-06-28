@@ -165,7 +165,7 @@ public class DiaryService {
         if (diaries.isEmpty()) {
             return new TodayMoodResponseDto(
                     0, 0, 0, 0, 0, 0,
-                    0, 0, 0, 0, 0,
+                    0, 0, 0,
                     50,
                     ageGroup,
                     getMoodMessage(ageGroup, 50),
@@ -184,26 +184,25 @@ public class DiaryService {
         int count25  = emotionCounts.getOrDefault(25, 0L).intValue();
         int count0   = emotionCounts.getOrDefault(0, 0L).intValue();
 
-        double avg = diaries.stream()
-                .mapToInt(Diary::getEmotion)
-                .average()
-                .orElse(50);
+        // 긍정/보통/부정 비율 계산 (합계 100 보장)
+        long positiveRatio = Math.round((count100 + count75) * 100.0 / total);
+        long neutralRatio  = Math.round(count50 * 100.0 / total);
+        long negativeRatio = 100 - positiveRatio - neutralRatio;
 
+        // 대표 감정 결정 (긍정/부정 비율 기준)
         int representativeEmotion;
-        if (avg >= 87.5) representativeEmotion = 100;
-        else if (avg >= 62.5) representativeEmotion = 75;
-        else if (avg >= 37.5) representativeEmotion = 50;
-        else if (avg >= 12.5) representativeEmotion = 25;
-        else representativeEmotion = 0;
+        if (positiveRatio >= 75) representativeEmotion = 100;
+        else if (positiveRatio >= 50) representativeEmotion = 75;
+        else if (negativeRatio >= 75) representativeEmotion = 0;
+        else if (negativeRatio >= 50) representativeEmotion = 25;
+        else representativeEmotion = 50;
 
         return new TodayMoodResponseDto(
                 total,
                 count100, count75, count50, count25, count0,
-                Math.round(count100 * 100.0 / total),
-                Math.round(count75  * 100.0 / total),
-                Math.round(count50  * 100.0 / total),
-                Math.round(count25  * 100.0 / total),
-                Math.round(count0   * 100.0 / total),
+                positiveRatio,
+                neutralRatio,
+                negativeRatio,
                 representativeEmotion,
                 ageGroup,
                 getMoodMessage(ageGroup, representativeEmotion),
@@ -280,15 +279,9 @@ public class DiaryService {
             throw new BusinessException(ErrorCode.DIARY_ACCESS_DENIED);
         }
 
-        // 댓글 먼저 삭제
         commentRepository.deleteByDiary(diary);
-
-        // 공감 먼저 삭제
         empathyRepository.deleteByDiary(diary);
-
-        // 알림 먼저 삭제
         notificationRepository.deleteByDiaryId(diaryId);
-
         diaryRepository.delete(diary);
     }
 

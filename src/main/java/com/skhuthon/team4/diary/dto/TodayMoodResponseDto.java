@@ -9,21 +9,19 @@ public record TodayMoodResponseDto(
         int count50,
         int count25,
         int count0,
-        long ratio100,
-        long ratio75,
-        long ratio50,
-        long ratio25,
-        long ratio0,
+        long positiveRatio,   // ratio100 + ratio75
+        long neutralRatio,    // ratio50
+        long negativeRatio,   // ratio25 + ratio0
         int representativeEmotion,
-        String ageGroup,        // 연령층 이름
-        String moodMessage,     // 연령층별 감정 메시지
+        String ageGroup,
+        String moodMessage,
         LocalDateTime start,
         LocalDateTime end
 ) {
     public static TodayMoodResponseDto empty() {
         return new TodayMoodResponseDto(
                 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0,
+                0, 0, 0,
                 50,
                 "전체",
                 "오늘의 작은 노력이 큰 변화를 만들어요 💪",
