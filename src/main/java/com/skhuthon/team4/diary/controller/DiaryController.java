@@ -45,10 +45,12 @@ public class DiaryController {
         return ApiResponseTemplate.success(diaryService.getHotFeed());
     }
 
-    // 홈 화면 감정 통계 (전날 오후 9시 ~ 오늘 오후 9시)
+    // 홈 화면 감정 통계 (연령층별)
     @GetMapping("/today-mood")
-    public ApiResponseTemplate<TodayMoodResponseDto> getTodayMood() {
-        return ApiResponseTemplate.success(diaryService.getTodayMood());
+    public ApiResponseTemplate<TodayMoodResponseDto> getTodayMood(
+            @AuthenticationPrincipal Member member
+    ) {
+        return ApiResponseTemplate.success(diaryService.getTodayMood(member));
     }
 
     // 내 일기 (년/월 필터 + 나만보기)

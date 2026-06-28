@@ -64,4 +64,17 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     Optional<Diary> findByMemberAndDiaryDateAndAiCommentIsNotNull(
             Member member, LocalDate diaryDate
     );
+
+    // 연령층별 감정 통계 (나이 범위 기반)
+    @Query("SELECT d FROM Diary d " +
+            "JOIN d.member m " +
+            "WHERE d.createdAt BETWEEN :start AND :end " +
+            "AND d.emotion IS NOT NULL " +
+            "AND m.age BETWEEN :minAge AND :maxAge")
+    List<Diary> findByCreatedAtBetweenAndEmotionIsNotNullAndAgeGroup(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            @Param("minAge") int minAge,
+            @Param("maxAge") int maxAge
+    );
 }
