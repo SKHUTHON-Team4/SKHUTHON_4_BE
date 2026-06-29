@@ -2,6 +2,7 @@ package com.skhuthon.team4.diary.controller;
 
 import com.skhuthon.team4.diary.dto.DiaryRequestDto;
 import com.skhuthon.team4.diary.dto.DiaryResponseDto;
+import com.skhuthon.team4.diary.dto.RecommendFeedResponseDto;
 import com.skhuthon.team4.diary.dto.TodayMoodResponseDto;
 import com.skhuthon.team4.diary.service.DiaryService;
 import com.skhuthon.team4.global.common.ApiResponseTemplate;
@@ -37,6 +38,14 @@ public class DiaryController {
             @RequestParam(defaultValue = "latest") String sort
     ) {
         return ApiResponseTemplate.success(diaryService.getFeed(sort));
+    }
+
+    // 추천 피드
+    @GetMapping("/feed/recommend")
+    public ApiResponseTemplate<RecommendFeedResponseDto> getRecommendFeed(
+            @AuthenticationPrincipal Member member
+    ) {
+        return ApiResponseTemplate.success(diaryService.getRecommendFeed(member));
     }
 
     // 핫 피드 top 10

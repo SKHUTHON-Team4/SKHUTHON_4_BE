@@ -5,6 +5,7 @@ import com.skhuthon.team4.diary.domain.Diary;
 import com.skhuthon.team4.diary.domain.repository.DiaryRepository;
 import com.skhuthon.team4.diary.dto.DiaryRequestDto;
 import com.skhuthon.team4.diary.dto.DiaryResponseDto;
+import com.skhuthon.team4.diary.dto.RecommendFeedResponseDto;
 import com.skhuthon.team4.diary.dto.TodayMoodResponseDto;
 import com.skhuthon.team4.empathy.domain.repository.EmpathyRepository;
 import com.skhuthon.team4.global.exception.BusinessException;
@@ -12,6 +13,7 @@ import com.skhuthon.team4.global.exception.ErrorCode;
 import com.skhuthon.team4.global.filter.BadWordFilter;
 import com.skhuthon.team4.member.domain.Member;
 import com.skhuthon.team4.notification.domain.repository.NotificationRepository;
+import com.skhuthon.team4.recommend.service.RecommendService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,7 @@ public class DiaryService {
     private final EmpathyRepository empathyRepository;
     private final NotificationRepository notificationRepository;
     private final BadWordFilter badWordFilter;
+    private final RecommendService recommendService;
 
     // 연령층 분류
     private String getAgeGroup(Integer age) {
@@ -114,6 +117,12 @@ public class DiaryService {
                 .build();
 
         Diary saved = diaryRepository.save(diary);
+
+        // 공개 일기면 추천 서버에 색인
+        if (saved.isPublic()) {
+            recommendService.indexDiary(saved);
+        }
+
         return DiaryResponseDto.from(saved, 0);
     }
 
@@ -184,11 +193,9 @@ public class DiaryService {
         int count25  = emotionCounts.getOrDefault(25, 0L).intValue();
         int count0   = emotionCounts.getOrDefault(0, 0L).intValue();
 
-        // 긍정/부정 비율 계산 (보통은 반반, 합계 100 보장)
         long positiveRatio = Math.round((count100 + count75 + count50 * 0.5) * 100.0 / total);
         long negativeRatio = 100 - positiveRatio;
 
-        // 대표 감정 결정 (5단계)
         int representativeEmotion;
         if (positiveRatio >= 75) representativeEmotion = 100;
         else if (positiveRatio > negativeRatio) representativeEmotion = 75;
@@ -244,6 +251,40 @@ public class DiaryService {
                 .toList();
     }
 
+    // 추천 피드
+    public RecommendFeedResponseDto getRecommendFeed(Member member) {
+        // 내 최신 일기 5개 조회
+        List<Diary> recentDiaries = diaryRepository.findTop5ByMemberOrderByCreatedAtDesc(member);
+
+        // 일기가 없으면 메시지 반환
+        if (recentDiaries.isEmpty()) {
+            return new RecommendFeedResponseDto(
+                    List.of(),
+                    "아직 작성한 일기가 없어요. 일기를 작성하면 맞춤 추천을 받을 수 있어요 ✍️"
+            );
+        }
+
+        // 추천 서버에 요청
+        List<Long> recommendedIds = recommendService.getRecommendedDiaryIds(recentDiaries);
+
+        // 추천 결과가 없으면 메시지 반환
+        if (recommendedIds.isEmpty()) {
+            return new RecommendFeedResponseDto(
+                    List.of(),
+                    "아직 내 일기가 많지 않아요. 일기를 더 작성하면 맞춤 추천을 받을 수 있어요 ✍️"
+            );
+        }
+
+        // 추천된 일기 ID로 DB 조회
+        List<DiaryResponseDto> diaries = recommendedIds.stream()
+                .map(id -> diaryRepository.findById(id).orElse(null))
+                .filter(d -> d != null)
+                .map(d -> DiaryResponseDto.from(d, commentRepository.countByDiary(d)))
+                .toList();
+
+        return new RecommendFeedResponseDto(diaries, null);
+    }
+
     // 핫 피드
     public List<DiaryResponseDto> getHotFeed() {
         return diaryRepository.findTop10ByIsPublicTrueOrderByEmpathyCountDescCreatedAtDesc()
@@ -280,6 +321,10 @@ public class DiaryService {
         commentRepository.deleteByDiary(diary);
         empathyRepository.deleteByDiary(diary);
         notificationRepository.deleteByDiaryId(diaryId);
+
+        // 추천 서버에서도 삭제
+        recommendService.deleteDiaryIndex(diaryId);
+
         diaryRepository.delete(diary);
     }
 

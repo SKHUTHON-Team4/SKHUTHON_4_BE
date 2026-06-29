@@ -19,6 +19,9 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     // 최신순 피드
     List<Diary> findAllByIsPublicTrueOrderByCreatedAtDesc();
 
+    // 전체 공개 일기 (추천 서버 색인용)
+    List<Diary> findAllByIsPublicTrue();
+
     // 랜덤 피드
     @Query(value = "SELECT * FROM diaries WHERE is_public = true ORDER BY RAND()", nativeQuery = true)
     List<Diary> findAllRandom();
@@ -35,6 +38,9 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
             @Param("year") int year,
             @Param("month") int month
     );
+
+    // 내 최신 일기 5개 (추천 서버용)
+    List<Diary> findTop5ByMemberOrderByCreatedAtDesc(Member member);
 
     // 내가 쓴 일기 수
     int countByMember(Member member);
