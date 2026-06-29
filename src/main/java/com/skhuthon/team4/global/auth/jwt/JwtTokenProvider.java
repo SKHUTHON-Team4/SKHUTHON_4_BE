@@ -58,7 +58,7 @@ public class JwtTokenProvider {
         return generateAccessToken(memberId);
     }
 
-    // 토큰에서 memberId 추출
+    // 토큰에서 memberId 추출 (유효한 토큰)
     public Long getMemberIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
@@ -66,6 +66,20 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)
                 .getBody();
         return Long.parseLong(claims.getSubject());
+    }
+
+    // 만료된 토큰에서도 memberId 추출
+    public Long getMemberIdFromExpiredToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return Long.parseLong(claims.getSubject());
+        } catch (ExpiredJwtException e) {
+            return Long.parseLong(e.getClaims().getSubject());
+        }
     }
 
     // 토큰 타입 확인

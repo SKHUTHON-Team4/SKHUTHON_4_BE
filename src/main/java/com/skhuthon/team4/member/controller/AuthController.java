@@ -32,31 +32,30 @@ public class AuthController {
         return ApiResponseTemplate.success(MemberResponseDto.from(findMember));
     }
 
-    // Refresh Token으로 새 Access Token 발급
+    // 만료된 Access Token으로 새 Access Token 발급
     @PostMapping("/refresh")
     public ApiResponseTemplate<Map<String, String>> refresh(
-            @RequestBody Map<String, String> body
+            @RequestHeader("Authorization") String bearerToken
     ) {
-        String refreshToken = body.get("refreshToken");
+        String expiredAccessToken = bearerToken.substring(7);
 
-        if (!jwtTokenProvider.validateToken(refreshToken)) {
+        // 만료된 토큰에서 memberId 추출
+        Long memberId = jwtTokenProvider.getMemberIdFromExpiredToken(expiredAccessToken);
+
+        if (memberId == null) {
             throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
         }
 
-        String tokenType = jwtTokenProvider.getTokenType(refreshToken);
-        if (!"refresh".equals(tokenType)) {
-            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
-        }
-
-        Long memberId = jwtTokenProvider.getMemberIdFromToken(refreshToken);
-
+        // DB에서 Refresh Token 조회 및 검증
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        if (!refreshToken.equals(member.getRefreshToken())) {
+        if (member.getRefreshToken() == null ||
+                !jwtTokenProvider.validateToken(member.getRefreshToken())) {
             throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
         }
 
+        // 새 Access Token 발급
         String newAccessToken = jwtTokenProvider.generateAccessToken(memberId);
 
         return ApiResponseTemplate.success(Map.of("accessToken", newAccessToken));

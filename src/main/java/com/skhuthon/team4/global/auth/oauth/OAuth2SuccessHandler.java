@@ -33,7 +33,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String accessToken = jwtTokenProvider.generateAccessToken(memberId);
         String refreshToken = jwtTokenProvider.generateRefreshToken(memberId);
 
-        // Refresh Token DB 저장
+        // Refresh Token DB에만 저장 (프론트에 전달 X)
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("Member not found"));
         member.updateRefreshToken(refreshToken);
@@ -41,9 +41,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         log.info("OAuth2 로그인 성공 - memberId: {}", memberId);
 
-        // 프론트에 Access Token + Refresh Token 전달
-        String redirectUrl = "https://cheongchun-v1.vercel.app/oauth/callback?token=" + accessToken
-                + "&refreshToken=" + refreshToken;
+        // 프론트에 Access Token만 전달
+        String redirectUrl = "https://cheongchun-v1.vercel.app/oauth/callback?token=" + accessToken;
         log.info("Redirect URL = {}", redirectUrl);
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
