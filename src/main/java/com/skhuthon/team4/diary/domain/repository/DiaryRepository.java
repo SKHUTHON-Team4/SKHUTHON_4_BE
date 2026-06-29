@@ -26,8 +26,14 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     @Query(value = "SELECT * FROM diaries WHERE is_public = true ORDER BY RAND()", nativeQuery = true)
     List<Diary> findAllRandom();
 
-    // 핫 피드 top 10
-    List<Diary> findTop10ByIsPublicTrueOrderByEmpathyCountDescCreatedAtDesc();
+    // 핫 피드 top 10 (이번 주 기준)
+    @Query("SELECT d FROM Diary d WHERE d.isPublic = true " +
+            "AND d.createdAt >= :startOfWeek AND d.createdAt <= :endOfWeek " +
+            "ORDER BY d.empathyCount DESC, d.createdAt DESC")
+    List<Diary> findTop10ThisWeekByEmpathyCount(
+            @Param("startOfWeek") LocalDateTime startOfWeek,
+            @Param("endOfWeek") LocalDateTime endOfWeek
+    );
 
     // 내 일기 (년/월 필터)
     @Query("SELECT d FROM Diary d WHERE d.member = :member " +

@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -255,7 +256,6 @@ public class DiaryService {
     public RecommendFeedResponseDto getRecommendFeed(Member member) {
         List<Diary> recentDiaries = diaryRepository.findTop5ByMemberOrderByCreatedAtDesc(member);
 
-        // 일기가 5개 미만이면 메시지 반환
         if (recentDiaries.size() < 5) {
             return new RecommendFeedResponseDto(
                     List.of(),
@@ -263,10 +263,8 @@ public class DiaryService {
             );
         }
 
-        // 추천 서버에 요청
         List<Long> recommendedIds = recommendService.getRecommendedDiaryIds(recentDiaries);
 
-        // 추천 결과가 없으면 메시지 반환
         if (recommendedIds.isEmpty()) {
             return new RecommendFeedResponseDto(
                     List.of(),
@@ -274,7 +272,6 @@ public class DiaryService {
             );
         }
 
-        // 추천된 일기 ID로 DB 조회
         List<DiaryResponseDto> diaries = recommendedIds.stream()
                 .map(id -> diaryRepository.findById(id).orElse(null))
                 .filter(d -> d != null)
@@ -284,9 +281,16 @@ public class DiaryService {
         return new RecommendFeedResponseDto(diaries, null);
     }
 
-    // 핫 피드
+    // 핫 피드 (이번 주 기준)
     public List<DiaryResponseDto> getHotFeed() {
-        return diaryRepository.findTop10ByIsPublicTrueOrderByEmpathyCountDescCreatedAtDesc()
+        LocalDateTime startOfWeek = LocalDate.now()
+                .with(DayOfWeek.MONDAY)
+                .atStartOfDay();
+        LocalDateTime endOfWeek = LocalDate.now()
+                .with(DayOfWeek.SUNDAY)
+                .atTime(23, 59, 59);
+
+        return diaryRepository.findTop10ThisWeekByEmpathyCount(startOfWeek, endOfWeek)
                 .stream()
                 .map(d -> DiaryResponseDto.from(d, commentRepository.countByDiary(d)))
                 .toList();
