@@ -42,6 +42,9 @@ public class SecurityConfig {
                                 "/oauth2/**",
                                 "/login/**",
                                 "/api/auth/**",
+                                "/api/diaries/today/public",
+                                "/api/diaries/ai-comments",
+                                "/api/diaries/*/ai-comment",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html"

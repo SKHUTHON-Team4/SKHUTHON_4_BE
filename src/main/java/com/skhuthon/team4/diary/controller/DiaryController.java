@@ -1,5 +1,7 @@
 package com.skhuthon.team4.diary.controller;
 
+import com.skhuthon.team4.diary.dto.AiCommentRequestDto;
+import com.skhuthon.team4.diary.dto.AiDiaryResponseDto;
 import com.skhuthon.team4.diary.dto.DiaryRequestDto;
 import com.skhuthon.team4.diary.dto.DiaryResponseDto;
 import com.skhuthon.team4.diary.dto.RecommendFeedResponseDto;
@@ -62,6 +64,21 @@ public class DiaryController {
         return ApiResponseTemplate.success(diaryService.getTodayMood(member));
     }
 
+    // 오늘 공개 일기 조회 (AI팀용 - 인증 불필요)
+    @GetMapping("/today/public")
+    public ApiResponseTemplate<List<AiDiaryResponseDto>> getTodayPublicDiaries() {
+        return ApiResponseTemplate.success(diaryService.getTodayPublicDiaries());
+    }
+
+    // AI 멘트 일괄 저장 (AI팀용 - 인증 불필요)
+    @PostMapping("/ai-comments")
+    public ApiResponseTemplate<Void> updateAiComments(
+            @RequestBody AiCommentRequestDto request
+    ) {
+        diaryService.updateAiComments(request);
+        return ApiResponseTemplate.success();
+    }
+
     // 내 일기 (년/월 필터 + 나만보기)
     @GetMapping("/me")
     public ApiResponseTemplate<List<DiaryResponseDto>> getMyDiaries(
@@ -122,7 +139,7 @@ public class DiaryController {
         return ApiResponseTemplate.success(diaryService.updateEmotion(member, diaryId, emotion));
     }
 
-    // AI 멘트 저장 (AI팀 호출용 - 인증 불필요)
+    // AI 멘트 단건 저장 (AI팀 호출용 - 인증 불필요)
     @PatchMapping("/{diaryId}/ai-comment")
     public ApiResponseTemplate<DiaryResponseDto> updateAiComment(
             @PathVariable Long diaryId,

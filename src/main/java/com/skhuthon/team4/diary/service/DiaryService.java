@@ -3,6 +3,8 @@ package com.skhuthon.team4.diary.service;
 import com.skhuthon.team4.comment.domain.repository.CommentRepository;
 import com.skhuthon.team4.diary.domain.Diary;
 import com.skhuthon.team4.diary.domain.repository.DiaryRepository;
+import com.skhuthon.team4.diary.dto.AiCommentRequestDto;
+import com.skhuthon.team4.diary.dto.AiDiaryResponseDto;
 import com.skhuthon.team4.diary.dto.DiaryRequestDto;
 import com.skhuthon.team4.diary.dto.DiaryResponseDto;
 import com.skhuthon.team4.diary.dto.RecommendFeedResponseDto;
@@ -119,7 +121,6 @@ public class DiaryService {
 
         Diary saved = diaryRepository.save(diary);
 
-        // 공개 일기면 추천 서버에 색인
         if (saved.isPublic()) {
             recommendService.indexDiary(saved);
         }
@@ -141,7 +142,7 @@ public class DiaryService {
         return DiaryResponseDto.from(diary, commentRepository.countByDiary(diary));
     }
 
-    // PATCH /api/diaries/{diaryId}/ai-comment - AI 멘트 저장 (AI팀 호출용)
+    // PATCH /api/diaries/{diaryId}/ai-comment - AI 멘트 단건 저장 (AI팀 호출용)
     @Transactional
     public DiaryResponseDto updateAiComment(Long diaryId, String aiComment) {
         Diary diary = diaryRepository.findById(diaryId)
@@ -149,6 +150,29 @@ public class DiaryService {
 
         diary.updateAiComment(aiComment);
         return DiaryResponseDto.from(diary, commentRepository.countByDiary(diary));
+    }
+
+    // GET /api/diaries/today/public - 오늘 공개 일기 조회 (AI팀용)
+    public List<AiDiaryResponseDto> getTodayPublicDiaries() {
+        return diaryRepository.findTodayPublicDiaries(LocalDate.now())
+                .stream()
+                .map(d -> new AiDiaryResponseDto(
+                        d.getId(),
+                        d.getMember().getAge(),
+                        d.getContent(),
+                        d.isPublic()
+                ))
+                .toList();
+    }
+
+    // POST /api/diaries/ai-comments - AI 멘트 일괄 저장 (AI팀용)
+    @Transactional
+    public void updateAiComments(AiCommentRequestDto request) {
+        for (AiCommentRequestDto.Recommendation rec : request.recommendations()) {
+            diaryRepository.findById(rec.id()).ifPresent(diary -> {
+                diary.updateAiComment(rec.aiComment());
+            });
+        }
     }
 
     // GET /api/diaries/today-mood - 홈 화면 감정 통계 (연령층별)

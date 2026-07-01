@@ -89,4 +89,11 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
             @Param("minAge") int minAge,
             @Param("maxAge") int maxAge
     );
+
+    // 오늘 공개 일기 조회 (AI 분석용)
+    @Query("SELECT d FROM Diary d " +
+            "JOIN FETCH d.member m " +
+            "WHERE d.diaryDate = :today " +
+            "AND d.isPublic = true")
+    List<Diary> findTodayPublicDiaries(@Param("today") LocalDate today);
 }
