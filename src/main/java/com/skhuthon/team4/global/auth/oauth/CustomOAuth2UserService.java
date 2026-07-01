@@ -23,7 +23,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        // 카카오에서 받아온 사용자 정보 파싱
         Map<String, Object> attributes = oAuth2User.getAttributes();
         Long kakaoId = (Long) attributes.get("id");
 
@@ -36,11 +35,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 ? (String) kakaoAccount.get("email")
                 : null;
 
-        // 신규 회원이면 저장, 기존 회원이면 프로필 업데이트
         Member member = memberRepository.findById(kakaoId)
                 .orElse(null);
 
         if (member == null) {
+            // 신규 회원만 카카오 닉네임으로 초기화
             member = Member.builder()
                     .id(kakaoId)
                     .nickname(nickname)
@@ -48,11 +47,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .email(email)
                     .isNotification(true)
                     .build();
-        } else {
-            member.updateProfile(nickname, profileImage);
+            memberRepository.save(member);
         }
-
-        memberRepository.save(member);
+        // 기존 회원은 저장된 닉네임 유지 (업데이트 없음)
 
         return new CustomOAuth2User(member, attributes);
     }
