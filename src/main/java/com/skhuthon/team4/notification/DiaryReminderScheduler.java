@@ -23,8 +23,8 @@ public class DiaryReminderScheduler {
     private final DiaryRepository diaryRepository;
     private final EmailService emailService;
 
-    // 매일 21시 30분 - 일기 미작성 유저 알림
-    @Scheduled(cron = "0 30 21 * * *", zone = "Asia/Seoul")
+    // 매일 21시 40분 - 일기 미작성 유저 알림
+    @Scheduled(cron = "0 40 21 * * *", zone = "Asia/Seoul")
     public void sendDiaryReminder() {
         log.info("일기 알림 스케줄러 시작");
 
