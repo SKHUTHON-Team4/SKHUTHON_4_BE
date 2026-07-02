@@ -45,7 +45,7 @@ public class MemberService {
         return MemberResponseDto.from(findMember);
     }
 
-    // PATCH /api/members/me/notification/night - 밤 10시 알림 ON/OFF
+    // PATCH /api/members/me/notification/night - 밤 알림 ON/OFF
     @Transactional
     public MemberResponseDto toggleNotificationNight(Member member) {
         Member findMember = memberRepository.findById(member.getId())
@@ -56,7 +56,7 @@ public class MemberService {
         return MemberResponseDto.from(findMember);
     }
 
-    // PATCH /api/members/me/notification/morning - 아침 8시 30분 알림 ON/OFF
+    // PATCH /api/members/me/notification/morning - 아침 알림 ON/OFF
     @Transactional
     public MemberResponseDto toggleNotificationMorning(Member member) {
         Member findMember = memberRepository.findById(member.getId())
@@ -82,6 +82,8 @@ public class MemberService {
                 findMember.getProfileImage(),
                 findMember.getEmail(),
                 findMember.isNotification(),
+                findMember.isNotificationNight(),
+                findMember.isNotificationMorning(),
                 diaryCount,
                 receivedEmpathy,
                 givenEmpathy
