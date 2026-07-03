@@ -127,7 +127,7 @@ public class DiaryService {
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
             ResponseEntity<Map> response = restTemplate.postForEntity(
-                    "https://skhuthon-ai-api.onrender.com/generate-mood-message",
+                    "https://skhuthon-ai-api.onrender.com/title/generate-mood-message",
                     request,
                     Map.class
             );
@@ -139,7 +139,6 @@ public class DiaryService {
             log.warn("AI 감정 메시지 생성 실패, 폴백 메시지 사용: {}", e.getMessage());
         }
 
-        // AI 실패 시 하드코딩 메시지로 폴백
         return getMoodMessage(ageGroup, representativeEmotion);
     }
 
