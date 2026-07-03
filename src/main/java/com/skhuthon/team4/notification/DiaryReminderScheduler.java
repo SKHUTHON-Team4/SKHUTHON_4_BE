@@ -27,7 +27,7 @@ public class DiaryReminderScheduler {
     private final AlarmTriggerService alarmTriggerService;
 
     // 매일 22시 - 일기 미작성 유저 알림
-    @Scheduled(cron = "0 00 22 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 30 2 * * *", zone = "Asia/Seoul")
     public void sendDiaryReminder() {
         log.info("일기 알림 스케줄러 시작");
 
@@ -57,7 +57,7 @@ public class DiaryReminderScheduler {
     }
 
     // 매일 08시 00분 - AI 서버 호출 후 AI 멘트 이메일 + FCM 발송
-    @Scheduled(cron = "0 0 8 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 30 2 * * *", zone = "Asia/Seoul")
     public void sendAiCommentEmail() {
         log.info("AI 멘트 스케줄러 시작");
 
@@ -108,8 +108,8 @@ public class DiaryReminderScheduler {
         log.info("AI 멘트 스케줄러 완료");
     }
 
-    // 매일 08시 30분 - 리콜 알람 발송
-    @Scheduled(cron = "0 30 8 * * *", zone = "Asia/Seoul")
+    // 매일 08시 30분 - 리콜 알람 발송줘
+    @Scheduled(cron = "0 30 2 * * *", zone = "Asia/Seoul")
     public void sendRecallAlarms() {
         log.info("리콜 알람 스케줄러 시작");
         alarmTriggerService.sendTodayTriggers();
