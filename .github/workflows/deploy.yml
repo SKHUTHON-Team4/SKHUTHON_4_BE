@@ -116,4 +116,5 @@ jobs:
             export DOCKER_USERNAME=toypiles
             export DB_USERNAME=${{ secrets.DATASOURCE_USERNAME }}
             export DB_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }}
+            export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
             bash deploy.sh
