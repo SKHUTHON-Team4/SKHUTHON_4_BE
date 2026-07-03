@@ -88,15 +88,16 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew bootJar -x test
 
-      - name: Copy jar to EC2
-        uses: appleboy/scp-action@master
+      - name: Docker Login
+        uses: docker/login-action@v2
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_KEY }}
-          source: "build/libs/skhuthon4-0.0.1-SNAPSHOT.jar"
-          target: "~/"
-          strip_components: 2
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Docker Build & Push
+        run: |
+          docker build -t toypiles/skhuthon4:${{ github.sha }} .
+          docker push toypiles/skhuthon4:${{ github.sha }}
 
       - name: Deploy on EC2
         uses: appleboy/ssh-action@master
@@ -105,8 +106,9 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            kill $(lsof -t -i:8080) 2>/dev/null || true
-            sleep 3
-            nohup java -jar ~/skhuthon4-0.0.1-SNAPSHOT.jar > ~/app.log 2>&1 &
-            disown
-            echo "Deployed!"
+            cd /home/ubuntu/app
+            export IMAGE_TAG=${{ github.sha }}
+            export DOCKER_USERNAME=toypiles
+            export DB_USERNAME=${{ secrets.DATASOURCE_USERNAME }}
+            export DB_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }}
+            bash deploy.sh
