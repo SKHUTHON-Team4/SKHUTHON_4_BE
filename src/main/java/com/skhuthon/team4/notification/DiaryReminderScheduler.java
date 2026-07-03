@@ -26,7 +26,7 @@ public class DiaryReminderScheduler {
     private final FcmService fcmService;
 
     // 매일 22시 - 일기 미작성 유저 알림
-    @Scheduled(cron = "0 0 22 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 40 22 * * *", zone = "Asia/Seoul")
     public void sendDiaryReminder() {
         log.info("일기 알림 스케줄러 시작");
 
@@ -56,7 +56,7 @@ public class DiaryReminderScheduler {
     }
 
     // 매일 08시 30분 - AI 서버 호출 후 AI 멘트 이메일 + FCM 발송
-    @Scheduled(cron = "0 30 8 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 45 22 * * *", zone = "Asia/Seoul")
     public void sendAiCommentEmail() {
         log.info("AI 멘트 스케줄러 시작");
 
