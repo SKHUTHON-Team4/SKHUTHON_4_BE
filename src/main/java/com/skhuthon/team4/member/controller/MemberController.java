@@ -112,4 +112,15 @@ public class MemberController {
         memberService.updateFcmToken(member, body.get("fcmToken"));
         return ApiResponseTemplate.success();
     }
+
+    // 프로필 이미지 변경
+    @PatchMapping("/me/profile-image")
+    public ApiResponseTemplate<Map<String, String>> updateProfileImage(
+            @AuthenticationPrincipal Member member,
+            @RequestBody Map<String, String> body
+    ) {
+        String profileImage = body.get("profileImage");
+        memberService.updateProfileImage(member, profileImage);
+        return ApiResponseTemplate.success(Map.of("profileImage", profileImage));
+    }
 }

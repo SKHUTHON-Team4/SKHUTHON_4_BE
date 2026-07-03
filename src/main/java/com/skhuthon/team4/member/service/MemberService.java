@@ -14,6 +14,8 @@ import com.skhuthon.team4.diary.domain.repository.DiaryRepository;
 import com.skhuthon.team4.empathy.domain.repository.EmpathyRepository;
 import com.skhuthon.team4.member.dto.MemberProfileDto;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -84,6 +86,10 @@ public class MemberService {
                 findMember.isNotification(),
                 findMember.isNotificationNight(),
                 findMember.isNotificationMorning(),
+                findMember.isNotificationNightEmail(),
+                findMember.isNotificationNightPush(),
+                findMember.isNotificationMorningEmail(),
+                findMember.isNotificationMorningPush(),
                 diaryCount,
                 receivedEmpathy,
                 givenEmpathy
@@ -137,5 +143,22 @@ public class MemberService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         findMember.updateNotificationMorningPush(!findMember.isNotificationMorningPush());
         return MemberResponseDto.from(findMember);
+    }
+
+    @Transactional
+    public void updateProfileImage(Member member, String profileImage) {
+        List<String> validImages = List.of(
+                "bear_01", "bear_02", "bear_03", "bear_04",
+                "bear_05", "bear_06", "bear_07", "bear_08",
+                "bear_09", "bear_10", "bear_11", "bear_12",
+                "bear_13", "bear_14", "bear_15", "bear_16"
+        );
+        if (!validImages.contains(profileImage)) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT);
+        }
+
+        Member findMember = memberRepository.findById(member.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        findMember.updateProfile(findMember.getNickname(), profileImage);
     }
 }

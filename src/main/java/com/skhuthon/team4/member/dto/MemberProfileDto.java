@@ -8,6 +8,10 @@ public record MemberProfileDto(
         boolean isNotification,
         boolean notificationNight,
         boolean notificationMorning,
+        boolean notificationNightEmail,
+        boolean notificationNightPush,
+        boolean notificationMorningEmail,
+        boolean notificationMorningPush,
         int diaryCount,
         int receivedEmpathy,
         int givenEmpathy
