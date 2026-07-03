@@ -36,7 +36,6 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session ->
-                        // OAuth2 로그인 시 state 저장을 위해 IF_REQUIRED 사용
                         session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -56,6 +55,19 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo ->
                                 userInfo.userService(customOAuth2UserService))
                         .successHandler(oAuth2SuccessHandler)
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            String requestUri = request.getRequestURI();
+                            // API 요청은 401 반환, 나머지는 카카오 로그인으로 리다이렉트
+                            if (requestUri.startsWith("/api/")) {
+                                response.setStatus(401);
+                                response.setContentType("application/json;charset=UTF-8");
+                                response.getWriter().write("{\"status\":401,\"message\":\"인증이 필요합니다.\"}");
+                            } else {
+                                response.sendRedirect("https://gksruf.store/oauth2/authorization/kakao");
+                            }
+                        })
                 )
                 .addFilterBefore(
                         new JwtAuthenticationFilter(jwtTokenProvider, memberRepository),
