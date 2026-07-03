@@ -58,12 +58,12 @@ public class CommentService {
         return response;
     }
 
-    // GET /api/diaries/{diaryId}/comments - 댓글 목록 조회
+    // GET /api/diaries/{diaryId}/comments - 댓글 목록 조회 (오래된순)
     public List<CommentResponseDto> getComments(Long diaryId) {
         Diary diary = diaryRepository.findById(diaryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
 
-        return commentRepository.findByDiaryOrderByCreatedAtDesc(diary)
+        return commentRepository.findByDiaryOrderByCreatedAtAsc(diary)
                 .stream()
                 .map(CommentResponseDto::from)
                 .toList();

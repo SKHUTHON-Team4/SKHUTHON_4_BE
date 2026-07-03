@@ -8,8 +8,8 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    // 특정 일기의 댓글 목록 (최신순)
-    List<Comment> findByDiaryOrderByCreatedAtDesc(Diary diary);
+    // 특정 일기의 댓글 목록 (오래된순)
+    List<Comment> findByDiaryOrderByCreatedAtAsc(Diary diary);
 
     // 특정 일기의 댓글 수
     int countByDiary(Diary diary);
