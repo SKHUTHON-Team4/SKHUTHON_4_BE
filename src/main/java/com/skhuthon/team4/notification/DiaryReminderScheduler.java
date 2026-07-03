@@ -108,11 +108,9 @@ public class DiaryReminderScheduler {
         log.info("AI 멘트 스케줄러 완료");
     }
 
-    // 매일 08시 30분 - 리콜 알람 발송줘
-    @Scheduled(cron = "0 30 8 * * *", zone = "Asia/Seoul")
+    // 매 분마다 실행 - 리콜 알람 발송
+    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
     public void sendRecallAlarms() {
-        log.info("리콜 알람 스케줄러 시작");
         alarmTriggerService.sendTodayTriggers();
-        log.info("리콜 알람 스케줄러 완료");
     }
 }

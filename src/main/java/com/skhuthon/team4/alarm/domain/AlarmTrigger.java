@@ -3,6 +3,7 @@ package com.skhuthon.team4.alarm.domain;
 import com.skhuthon.team4.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalTime;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,6 +44,9 @@ public class AlarmTrigger {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
+    @Column(name = "trigger_time")
+    private LocalTime triggerTime;
 
     public void markAsSent() {
         this.isSent = true;

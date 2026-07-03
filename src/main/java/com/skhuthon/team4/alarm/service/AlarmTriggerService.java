@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 
@@ -47,24 +48,49 @@ public class AlarmTriggerService {
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
-            ResponseEntity<Object> response = restTemplate.postForEntity(
+            ResponseEntity<Map> response = restTemplate.postForEntity(
                     RECALL_ALARM_URL + "/recall-alarm/extract",
                     request,
-                    Object.class
+                    Map.class
             );
 
             if (response.getBody() != null) {
-                String triggerData = objectMapper.writeValueAsString(response.getBody());
+                Map<String, Object> responseBody = response.getBody();
+                List<Map<String, Object>> triggers = (List<Map<String, Object>>) responseBody.get("triggers");
 
-                AlarmTrigger trigger = AlarmTrigger.builder()
-                        .member(member)
-                        .triggerData(triggerData)
-                        .diaryExcerpt(diaryText.length() > 100 ? diaryText.substring(0, 100) : diaryText)
-                        .triggerDate(writtenDate.plusDays(7))
-                        .build();
+                if (triggers != null && !triggers.isEmpty()) {
+                    for (Map<String, Object> triggerItem : triggers) {
+                        // target_date 추출
+                        String targetDateStr = (String) triggerItem.get("target_date");
+                        LocalDate triggerDate = targetDateStr != null
+                                ? LocalDate.parse(targetDateStr)
+                                : writtenDate.plusDays(7);
 
-                alarmTriggerRepository.save(trigger);
-                log.info("알람 트리거 저장 완료 - memberId: {}", member.getId());
+                        // alarm_time 추출 (예: "15:00")
+                        String alarmTimeStr = (String) triggerItem.get("alarm_time");
+                        LocalTime triggerTime = null;
+                        if (alarmTimeStr != null && alarmTimeStr.contains(":")) {
+                            try {
+                                triggerTime = LocalTime.parse(alarmTimeStr);
+                            } catch (Exception e) {
+                                log.warn("alarm_time 파싱 실패: {}", alarmTimeStr);
+                            }
+                        }
+
+                        String triggerData = objectMapper.writeValueAsString(triggerItem);
+
+                        AlarmTrigger trigger = AlarmTrigger.builder()
+                                .member(member)
+                                .triggerData(triggerData)
+                                .diaryExcerpt(diaryText.length() > 100 ? diaryText.substring(0, 100) : diaryText)
+                                .triggerDate(triggerDate)
+                                .triggerTime(triggerTime)
+                                .build();
+
+                        alarmTriggerRepository.save(trigger);
+                        log.info("알람 트리거 저장 완료 - memberId: {}, triggerDate: {}, triggerTime: {}", member.getId(), triggerDate, triggerTime);
+                    }
+                }
             }
         } catch (Exception e) {
             log.warn("알람 트리거 추출 실패 (무시): {}", e.getMessage());
@@ -74,15 +100,26 @@ public class AlarmTriggerService {
     // 스케줄러에서 오늘 트리거 발송
     @Transactional
     public void sendTodayTriggers() {
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
         List<AlarmTrigger> triggers = alarmTriggerRepository
-                .findByTriggerDateAndIsSentFalse(LocalDate.now());
+                .findByTriggerDateAndIsSentFalse(today);
 
         for (AlarmTrigger trigger : triggers) {
             try {
+                // trigger_time이 있으면 현재 시간과 비교 (±5분 오차 허용)
+                if (trigger.getTriggerTime() != null) {
+                    LocalTime triggerTime = trigger.getTriggerTime();
+                    if (now.isBefore(triggerTime.minusMinutes(5)) ||
+                            now.isAfter(triggerTime.plusMinutes(5))) {
+                        continue; // 아직 발송 시간 아님
+                    }
+                }
+
                 Member member = trigger.getMember();
 
                 RestTemplate restTemplate = new RestTemplate();
-
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
 
