@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
 import com.skhuthon.team4.alarm.service.AlarmTriggerService;
+import java.time.ZoneId;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -147,7 +148,7 @@ public class DiaryService {
     // POST /api/diaries - 일기 작성 (하루 1개 제한)
     @Transactional
     public DiaryResponseDto createDiary(Member member, DiaryRequestDto request) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
         if (diaryRepository.existsByMemberAndDiaryDate(member, today)) {
             throw new BusinessException(ErrorCode.DIARY_ALREADY_EXISTS);
