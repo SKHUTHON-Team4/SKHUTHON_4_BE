@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skhuthon.team4.alarm.domain.AlarmTrigger;
 import com.skhuthon.team4.alarm.domain.repository.AlarmTriggerRepository;
 import com.skhuthon.team4.member.domain.Member;
+import com.skhuthon.team4.notification.EmailService;
 import com.skhuthon.team4.notification.service.FcmService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ public class AlarmTriggerService {
 
     private final AlarmTriggerRepository alarmTriggerRepository;
     private final FcmService fcmService;
+    private final EmailService emailService;
     private final ObjectMapper objectMapper;
 
     private static final String RECALL_ALARM_URL = "https://skhuthon-ai-api.onrender.com";
@@ -58,7 +60,7 @@ public class AlarmTriggerService {
                         .member(member)
                         .triggerData(triggerData)
                         .diaryExcerpt(diaryText.length() > 100 ? diaryText.substring(0, 100) : diaryText)
-                        .triggerDate(writtenDate.plusDays(7)) // 7일 후 알람
+                        .triggerDate(writtenDate.plusDays(7))
                         .build();
 
                 alarmTriggerRepository.save(trigger);
@@ -78,7 +80,6 @@ public class AlarmTriggerService {
         for (AlarmTrigger trigger : triggers) {
             try {
                 Member member = trigger.getMember();
-                if (member.getFcmToken() == null) continue;
 
                 RestTemplate restTemplate = new RestTemplate();
 
@@ -103,7 +104,16 @@ public class AlarmTriggerService {
                     String title = (String) response.getBody().get("title");
                     String bodyText = (String) response.getBody().get("body");
 
-                    fcmService.sendPushNotification(member.getFcmToken(), title, bodyText);
+                    // FCM 푸시 알림 발송
+                    if (member.getFcmToken() != null) {
+                        fcmService.sendPushNotification(member.getFcmToken(), title, bodyText);
+                    }
+
+                    // 이메일 발송
+                    if (member.getEmail() != null) {
+                        emailService.sendAiComment(member.getEmail(), member.getNickname(), bodyText);
+                    }
+
                     trigger.markAsSent();
                     log.info("리콜 알람 발송 완료 - memberId: {}", member.getId());
                 }
