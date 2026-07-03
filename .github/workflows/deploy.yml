@@ -90,6 +90,11 @@ jobs:
             default-produces-media-type: application/json
           EOF
 
+      - name: Make firebase-service-account.json
+        run: |
+          mkdir -p src/main/resources
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > src/main/resources/firebase-service-account.json
+
       - name: Build with Gradle
         run: ./gradlew bootJar -x test
 
