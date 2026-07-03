@@ -109,7 +109,7 @@ public class DiaryReminderScheduler {
     }
 
     // 매일 08시 30분 - 리콜 알람 발송
-    @Scheduled(cron = "0 13 0 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 20 0 * * *", zone = "Asia/Seoul")
     public void sendRecallAlarms() {
         log.info("리콜 알람 스케줄러 시작");
         alarmTriggerService.sendTodayTriggers();
