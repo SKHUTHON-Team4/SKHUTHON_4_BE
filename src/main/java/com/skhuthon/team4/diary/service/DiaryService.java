@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
+import com.skhuthon.team4.alarm.service.AlarmTriggerService;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -42,6 +43,7 @@ public class DiaryService {
     private final NotificationRepository notificationRepository;
     private final BadWordFilter badWordFilter;
     private final RecommendService recommendService;
+    private final AlarmTriggerService alarmTriggerService;
 
     // 연령층 분류
     private String getAgeGroup(Integer age) {
@@ -172,6 +174,9 @@ public class DiaryService {
         if (saved.isPublic()) {
             recommendService.indexDiary(saved);
         }
+
+        // 리콜 알람 트리거 추출
+        alarmTriggerService.extractTriggers(member, request.content(), today);
 
         return DiaryResponseDto.from(saved, 0);
     }
