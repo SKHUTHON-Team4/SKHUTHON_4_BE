@@ -20,7 +20,7 @@ public class RecommendService {
     private final DiaryRepository diaryRepository;
     private final RestTemplate restTemplate;
 
-    private static final String REC_SERVER = "https://skhuthon-ai-api.onrender.com/recommender";
+    private static final String REC_SERVER = "http://13.209.41.39:8000";
 
     // 서버 시작 시 전체 공개 일기 색인
     @PostConstruct
