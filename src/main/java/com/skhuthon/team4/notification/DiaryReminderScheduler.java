@@ -23,14 +23,13 @@ public class DiaryReminderScheduler {
     private final DiaryRepository diaryRepository;
     private final EmailService emailService;
 
-    // 매일 21시 52분 - 일기 미작성 유저 알림
-    @Scheduled(cron = "0 52 21 * * *", zone = "Asia/Seoul")
+    // 매일 22시 - 일기 미작성 유저 알림
+    @Scheduled(cron = "0 0 22 * * *", zone = "Asia/Seoul")
     public void sendDiaryReminder() {
         log.info("일기 알림 스케줄러 시작");
 
         LocalDate today = LocalDate.now();
 
-        // 밤 알림 ON인 유저만 조회
         List<Member> members = memberRepository.findAllByIsNotificationNightTrue();
 
         for (Member member : members) {
@@ -43,15 +42,15 @@ public class DiaryReminderScheduler {
         log.info("일기 알림 스케줄러 완료");
     }
 
-    // 매일 21시 45분 - AI 서버 호출 후 AI 멘트 이메일 발송
-    @Scheduled(cron = "0 58 21 * * *", zone = "Asia/Seoul")
+    // 매일 08시 30분 - AI 서버 호출 후 AI 멘트 이메일 발송
+    @Scheduled(cron = "0 30 8 * * *", zone = "Asia/Seoul")
     public void sendAiCommentEmail() {
         log.info("AI 멘트 이메일 스케줄러 시작");
 
-        // AI 서버 호출 (오늘 일기 분석 + ai_comment 저장)
+        // AI 서버 호출 (어제 일기 분석 + ai_comment 저장)
         try {
             RestTemplate restTemplate = new RestTemplate();
-            restTemplate.getForObject("https://skhuthon-ai-api.onrender.com/run-ai", String.class);
+            restTemplate.getForObject("https://skhuthon-ai-api.onrender.com/alarm/run-ai", String.class);
             log.info("AI 서버 호출 완료");
 
             // AI 분석 완료까지 잠시 대기 (30초)
@@ -60,7 +59,7 @@ public class DiaryReminderScheduler {
             log.error("AI 서버 호출 실패: {}", e.getMessage());
         }
 
-        LocalDate today = LocalDate.now();
+        LocalDate yesterday = LocalDate.now().minusDays(1);
 
         // 아침 알림 ON인 유저만 조회
         List<Member> members = memberRepository.findAllByIsNotificationMorningTrue();
@@ -69,7 +68,7 @@ public class DiaryReminderScheduler {
             if (member.getEmail() == null) continue;
 
             Optional<Diary> diaryOpt = diaryRepository
-                    .findByMemberAndDiaryDateAndAiCommentIsNotNull(member, today);
+                    .findByMemberAndDiaryDateAndAiCommentIsNotNull(member, yesterday);
 
             if (diaryOpt.isPresent()) {
                 Diary diary = diaryOpt.get();
