@@ -78,6 +78,11 @@ jobs:
             api-key: "${{ secrets.OPENAI_API_KEY }}"
           server:
             port: 8080
+            servlet:
+              session:
+                cookie:
+                  same-site: none
+                  secure: true
           springdoc:
             api-docs:
               path: /v3/api-docs
