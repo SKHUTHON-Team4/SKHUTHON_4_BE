@@ -150,8 +150,7 @@ public class MemberService {
         List<String> validImages = List.of(
                 "bear_01", "bear_02", "bear_03", "bear_04",
                 "bear_05", "bear_06", "bear_07", "bear_08",
-                "bear_09", "bear_10", "bear_11", "bear_12",
-                "bear_13", "bear_14", "bear_15", "bear_16"
+                "bear_09"
         );
         if (!validImages.contains(profileImage)) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);
