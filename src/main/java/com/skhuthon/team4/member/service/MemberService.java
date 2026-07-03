@@ -99,4 +99,11 @@ public class MemberService {
 
         return MemberResponseDto.from(findMember);
     }
+
+    @Transactional
+    public void updateFcmToken(Member member, String fcmToken) {
+        Member findMember = memberRepository.findById(member.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        findMember.updateFcmToken(fcmToken);
+    }
 }

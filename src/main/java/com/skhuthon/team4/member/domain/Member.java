@@ -41,6 +41,9 @@ public class Member {
     @Column(name = "refresh_token", length = 500)
     private String refreshToken;
 
+    @Column(name = "fcm_token", length = 500)
+    private String fcmToken;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -83,5 +86,9 @@ public class Member {
 
     public void clearRefreshToken() {
         this.refreshToken = null;
+    }
+
+    public void updateFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 }

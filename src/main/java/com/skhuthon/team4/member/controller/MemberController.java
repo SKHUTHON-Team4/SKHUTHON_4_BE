@@ -12,6 +12,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import com.skhuthon.team4.member.dto.MemberProfileDto;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
@@ -67,5 +69,15 @@ public class MemberController {
             @Valid @RequestBody MemberUpdateAgeRequestDto request
     ) {
         return ApiResponseTemplate.success(memberService.updateAge(member, request));
+    }
+
+    // FCM 토큰 저장
+    @PatchMapping("/me/fcm-token")
+    public ApiResponseTemplate<Void> updateFcmToken(
+            @AuthenticationPrincipal Member member,
+            @RequestBody Map<String, String> body
+    ) {
+        memberService.updateFcmToken(member, body.get("fcmToken"));
+        return ApiResponseTemplate.success();
     }
 }
