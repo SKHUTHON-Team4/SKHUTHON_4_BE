@@ -16,6 +16,7 @@ public enum ErrorCode {
 
     // Member
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 사용자입니다."),
+    AGE_REQUIRED(HttpStatus.BAD_REQUEST, "나이를 입력해주세요."),
 
     // Diary
     DIARY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 일기입니다."),

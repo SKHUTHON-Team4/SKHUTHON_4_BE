@@ -17,8 +17,11 @@ import com.skhuthon.team4.member.domain.Member;
 import com.skhuthon.team4.notification.domain.repository.NotificationRepository;
 import com.skhuthon.team4.recommend.service.RecommendService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -27,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -49,7 +53,7 @@ public class DiaryService {
         return "30대 중반 이상";
     }
 
-    // 연령층 + 감정에 따른 메시지
+    // 연령층 + 감정에 따른 메시지 (폴백용)
     private String getMoodMessage(String ageGroup, int representativeEmotion) {
         return switch (ageGroup) {
             case "고등학생" -> switch (representativeEmotion) {
@@ -97,6 +101,48 @@ public class DiaryService {
         };
     }
 
+    // AI 서버에서 감정 메시지 생성
+    private String getAiMoodMessage(String ageGroup, long totalCount, int count100, int count75,
+                                    int count50, int count25, int count0,
+                                    long positiveRatio, long negativeRatio, int representativeEmotion) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, Object> body = Map.of(
+                    "ageGroup", ageGroup,
+                    "totalCount", totalCount,
+                    "count100", count100,
+                    "count75", count75,
+                    "count50", count50,
+                    "count25", count25,
+                    "count0", count0,
+                    "positiveRatio", positiveRatio,
+                    "negativeRatio", negativeRatio,
+                    "representativeEmotion", representativeEmotion
+            );
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    "https://skhuthon-ai-api.onrender.com/generate-mood-message",
+                    request,
+                    Map.class
+            );
+
+            if (response.getBody() != null && response.getBody().get("message") != null) {
+                return (String) response.getBody().get("message");
+            }
+        } catch (Exception e) {
+            log.warn("AI 감정 메시지 생성 실패, 폴백 메시지 사용: {}", e.getMessage());
+        }
+
+        // AI 실패 시 하드코딩 메시지로 폴백
+        return getMoodMessage(ageGroup, representativeEmotion);
+    }
+
     // POST /api/diaries - 일기 작성 (하루 1개 제한)
     @Transactional
     public DiaryResponseDto createDiary(Member member, DiaryRequestDto request) {
@@ -106,7 +152,6 @@ public class DiaryService {
             throw new BusinessException(ErrorCode.DIARY_ALREADY_EXISTS);
         }
 
-        // 제목 + 본문 욕설 검사
         if (badWordFilter.containsBadWord(request.title())) {
             throw new BusinessException(ErrorCode.BAD_WORD_DETECTED);
         }
@@ -181,6 +226,11 @@ public class DiaryService {
 
     // GET /api/diaries/today-mood - 홈 화면 감정 통계 (연령층별)
     public TodayMoodResponseDto getTodayMood(Member member) {
+        // 나이 미입력 시 에러
+        if (member.getAge() == null) {
+            throw new BusinessException(ErrorCode.AGE_REQUIRED);
+        }
+
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime end = now.toLocalDate().atTime(21, 0, 0);
 
@@ -191,14 +241,9 @@ public class DiaryService {
 
         String ageGroup = getAgeGroup(member.getAge());
 
-        List<Diary> diaries;
-        if ("전체".equals(ageGroup)) {
-            diaries = diaryRepository.findByCreatedAtBetweenAndEmotionIsNotNull(start, end);
-        } else {
-            diaries = diaryRepository.findByCreatedAtBetweenAndEmotionIsNotNullAndAgeGroup(
-                    start, end, getMinAge(ageGroup), getMaxAge(ageGroup)
-            );
-        }
+        List<Diary> diaries = diaryRepository.findByCreatedAtBetweenAndEmotionIsNotNullAndAgeGroup(
+                start, end, getMinAge(ageGroup), getMaxAge(ageGroup)
+        );
 
         if (diaries.isEmpty()) {
             return new TodayMoodResponseDto(
@@ -232,6 +277,12 @@ public class DiaryService {
         else if (negativeRatio > positiveRatio) representativeEmotion = 25;
         else representativeEmotion = 50;
 
+        // AI 서버에서 메시지 생성 (실패 시 하드코딩 폴백)
+        String moodMessage = getAiMoodMessage(
+                ageGroup, total, count100, count75, count50, count25, count0,
+                positiveRatio, negativeRatio, representativeEmotion
+        );
+
         return new TodayMoodResponseDto(
                 total,
                 count100, count75, count50, count25, count0,
@@ -239,7 +290,7 @@ public class DiaryService {
                 negativeRatio,
                 representativeEmotion,
                 ageGroup,
-                getMoodMessage(ageGroup, representativeEmotion),
+                moodMessage,
                 start,
                 end
         );
@@ -385,7 +436,6 @@ public class DiaryService {
             throw new BusinessException(ErrorCode.DIARY_ACCESS_DENIED);
         }
 
-        // 제목 + 본문 욕설 검사
         if (badWordFilter.containsBadWord(request.title())) {
             throw new BusinessException(ErrorCode.BAD_WORD_DETECTED);
         }
