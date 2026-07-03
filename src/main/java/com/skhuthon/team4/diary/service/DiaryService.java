@@ -106,6 +106,10 @@ public class DiaryService {
             throw new BusinessException(ErrorCode.DIARY_ALREADY_EXISTS);
         }
 
+        // 제목 + 본문 욕설 검사
+        if (badWordFilter.containsBadWord(request.title())) {
+            throw new BusinessException(ErrorCode.BAD_WORD_DETECTED);
+        }
         if (badWordFilter.containsBadWord(request.content())) {
             throw new BusinessException(ErrorCode.BAD_WORD_DETECTED);
         }
@@ -381,6 +385,10 @@ public class DiaryService {
             throw new BusinessException(ErrorCode.DIARY_ACCESS_DENIED);
         }
 
+        // 제목 + 본문 욕설 검사
+        if (badWordFilter.containsBadWord(request.title())) {
+            throw new BusinessException(ErrorCode.BAD_WORD_DETECTED);
+        }
         if (badWordFilter.containsBadWord(request.content())) {
             throw new BusinessException(ErrorCode.BAD_WORD_DETECTED);
         }

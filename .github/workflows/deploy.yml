@@ -74,6 +74,8 @@ jobs:
           jwt:
             secret: ${{ secrets.JWT_SECRET }}
             expiration: 86400000
+          openai:
+            api-key: ${{ secrets.OPENAI_API_KEY }}
           server:
             port: 8080
           springdoc:
