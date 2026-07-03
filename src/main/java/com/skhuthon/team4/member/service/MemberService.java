@@ -106,4 +106,36 @@ public class MemberService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         findMember.updateFcmToken(fcmToken);
     }
+
+    @Transactional
+    public MemberResponseDto toggleNotificationNightEmail(Member member) {
+        Member findMember = memberRepository.findById(member.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        findMember.updateNotificationNightEmail(!findMember.isNotificationNightEmail());
+        return MemberResponseDto.from(findMember);
+    }
+
+    @Transactional
+    public MemberResponseDto toggleNotificationNightPush(Member member) {
+        Member findMember = memberRepository.findById(member.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        findMember.updateNotificationNightPush(!findMember.isNotificationNightPush());
+        return MemberResponseDto.from(findMember);
+    }
+
+    @Transactional
+    public MemberResponseDto toggleNotificationMorningEmail(Member member) {
+        Member findMember = memberRepository.findById(member.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        findMember.updateNotificationMorningEmail(!findMember.isNotificationMorningEmail());
+        return MemberResponseDto.from(findMember);
+    }
+
+    @Transactional
+    public MemberResponseDto toggleNotificationMorningPush(Member member) {
+        Member findMember = memberRepository.findById(member.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        findMember.updateNotificationMorningPush(!findMember.isNotificationMorningPush());
+        return MemberResponseDto.from(findMember);
+    }
 }

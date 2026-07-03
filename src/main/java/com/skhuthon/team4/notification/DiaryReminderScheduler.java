@@ -37,12 +37,12 @@ public class DiaryReminderScheduler {
         for (Member member : members) {
             boolean wroteToday = diaryRepository.existsByMemberAndDiaryDate(member, today);
             if (!wroteToday) {
-                // 이메일 발송
-                if (member.getEmail() != null) {
+                // 이메일 알림 (밤 이메일 ON인 경우만)
+                if (member.getEmail() != null && member.isNotificationNightEmail()) {
                     emailService.sendDiaryReminder(member.getEmail(), member.getNickname());
                 }
-                // FCM 푸시 알림 발송
-                if (member.getFcmToken() != null) {
+                // FCM 푸시 알림 (밤 푸시 ON인 경우만)
+                if (member.getFcmToken() != null && member.isNotificationNightPush()) {
                     fcmService.sendPushNotification(
                             member.getFcmToken(),
                             "청춘잇다 📝",
@@ -84,8 +84,8 @@ public class DiaryReminderScheduler {
             if (diaryOpt.isPresent()) {
                 Diary diary = diaryOpt.get();
 
-                // 이메일 발송
-                if (member.getEmail() != null) {
+                // 이메일 알림 (아침 이메일 ON인 경우만)
+                if (member.getEmail() != null && member.isNotificationMorningEmail()) {
                     emailService.sendAiComment(
                             member.getEmail(),
                             member.getNickname(),
@@ -93,8 +93,8 @@ public class DiaryReminderScheduler {
                     );
                 }
 
-                // FCM 푸시 알림 발송
-                if (member.getFcmToken() != null) {
+                // FCM 푸시 알림 (아침 푸시 ON인 경우만)
+                if (member.getFcmToken() != null && member.isNotificationMorningPush()) {
                     fcmService.sendPushNotification(
                             member.getFcmToken(),
                             "청춘잇다 💌",

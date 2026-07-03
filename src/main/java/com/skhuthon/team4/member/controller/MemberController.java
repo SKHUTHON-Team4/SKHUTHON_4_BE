@@ -54,6 +54,38 @@ public class MemberController {
         return ApiResponseTemplate.success(memberService.toggleNotificationMorning(member));
     }
 
+    // 밤 이메일 알림 ON/OFF
+    @PatchMapping("/me/notification/night/email")
+    public ApiResponseTemplate<MemberResponseDto> toggleNotificationNightEmail(
+            @AuthenticationPrincipal Member member
+    ) {
+        return ApiResponseTemplate.success(memberService.toggleNotificationNightEmail(member));
+    }
+
+    // 밤 앱 푸시 알림 ON/OFF
+    @PatchMapping("/me/notification/night/push")
+    public ApiResponseTemplate<MemberResponseDto> toggleNotificationNightPush(
+            @AuthenticationPrincipal Member member
+    ) {
+        return ApiResponseTemplate.success(memberService.toggleNotificationNightPush(member));
+    }
+
+    // 아침 이메일 알림 ON/OFF
+    @PatchMapping("/me/notification/morning/email")
+    public ApiResponseTemplate<MemberResponseDto> toggleNotificationMorningEmail(
+            @AuthenticationPrincipal Member member
+    ) {
+        return ApiResponseTemplate.success(memberService.toggleNotificationMorningEmail(member));
+    }
+
+    // 아침 앱 푸시 알림 ON/OFF
+    @PatchMapping("/me/notification/morning/push")
+    public ApiResponseTemplate<MemberResponseDto> toggleNotificationMorningPush(
+            @AuthenticationPrincipal Member member
+    ) {
+        return ApiResponseTemplate.success(memberService.toggleNotificationMorningPush(member));
+    }
+
     // 프로필 통계 조회
     @GetMapping("/me/profile")
     public ApiResponseTemplate<MemberProfileDto> getProfile(

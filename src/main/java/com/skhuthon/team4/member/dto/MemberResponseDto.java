@@ -15,6 +15,10 @@ public class MemberResponseDto {
     private final boolean notification;
     private final boolean notificationNight;
     private final boolean notificationMorning;
+    private final boolean notificationNightEmail;
+    private final boolean notificationNightPush;
+    private final boolean notificationMorningEmail;
+    private final boolean notificationMorningPush;
     private final Integer age;
 
     public static MemberResponseDto from(Member member) {
@@ -26,6 +30,10 @@ public class MemberResponseDto {
                 .notification(member.isNotification())
                 .notificationNight(member.isNotificationNight())
                 .notificationMorning(member.isNotificationMorning())
+                .notificationNightEmail(member.isNotificationNightEmail())
+                .notificationNightPush(member.isNotificationNightPush())
+                .notificationMorningEmail(member.isNotificationMorningEmail())
+                .notificationMorningPush(member.isNotificationMorningPush())
                 .age(member.getAge())
                 .build();
     }

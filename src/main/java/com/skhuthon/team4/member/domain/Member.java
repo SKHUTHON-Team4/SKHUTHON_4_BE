@@ -38,6 +38,22 @@ public class Member {
     @Builder.Default
     private boolean isNotificationMorning = true;
 
+    @Column(name = "is_notification_night_email", nullable = false)
+    @Builder.Default
+    private boolean isNotificationNightEmail = true;
+
+    @Column(name = "is_notification_night_push", nullable = false)
+    @Builder.Default
+    private boolean isNotificationNightPush = true;
+
+    @Column(name = "is_notification_morning_email", nullable = false)
+    @Builder.Default
+    private boolean isNotificationMorningEmail = true;
+
+    @Column(name = "is_notification_morning_push", nullable = false)
+    @Builder.Default
+    private boolean isNotificationMorningPush = true;
+
     @Column(name = "refresh_token", length = 500)
     private String refreshToken;
 
@@ -78,6 +94,22 @@ public class Member {
 
     public void updateNotificationMorning(boolean isNotificationMorning) {
         this.isNotificationMorning = isNotificationMorning;
+    }
+
+    public void updateNotificationNightEmail(boolean isNotificationNightEmail) {
+        this.isNotificationNightEmail = isNotificationNightEmail;
+    }
+
+    public void updateNotificationNightPush(boolean isNotificationNightPush) {
+        this.isNotificationNightPush = isNotificationNightPush;
+    }
+
+    public void updateNotificationMorningEmail(boolean isNotificationMorningEmail) {
+        this.isNotificationMorningEmail = isNotificationMorningEmail;
+    }
+
+    public void updateNotificationMorningPush(boolean isNotificationMorningPush) {
+        this.isNotificationMorningPush = isNotificationMorningPush;
     }
 
     public void updateRefreshToken(String refreshToken) {
